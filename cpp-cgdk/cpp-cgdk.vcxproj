@@ -90,7 +90,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="GeomMisc.cpp" />
     <ClCompile Include="MyStrategy.cpp" />
+    <ClCompile Include="PathFinder.cpp" />
     <ClCompile Include="RemoteProcessClient.cpp" />
     <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Strategy.cpp" />
@@ -108,7 +110,9 @@
     <ClCompile Include="model\World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GeomMisc.h" />
     <ClInclude Include="MyStrategy.h" />
+    <ClInclude Include="PathFinder.h" />
     <ClInclude Include="RemoteProcessClient.h" />
     <ClInclude Include="Runner.h" />
     <ClInclude Include="Strategy.h" />

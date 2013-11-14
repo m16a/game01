@@ -3,16 +3,12 @@
 #include "assert.h"
 #include <string>
 
+#include <fstream>
+#include <iostream>
+#include <math.h>
+
 #include "PathFinder.h"
 #include "GeomMisc.h"
-
-PathFinder::PathFinder(void)
-{
-}
-
-PathFinder::~PathFinder(void)
-{
-}
 
 
 //Node for A* search
@@ -26,6 +22,17 @@ struct A_node{
 		_f = _g +_h;
 	}
 
+	A_node& operator=(A_node other){
+		this->_v = other._v;
+		this->_f = other._f;
+		this->_g = other._g;
+		this->_h = other._h;
+		this->_prev = other._prev;
+
+		return *this;
+	}
+
+
 	friend bool operator< (const A_node& a, const A_node& b){
 		return a._f < b._f;
 	}
@@ -33,6 +40,7 @@ struct A_node{
 	bool operator==(const A_node& rhs)const{
 		return rhs._v == this->_v;
 	}
+
 };
 
 
@@ -66,21 +74,36 @@ std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v){
 	return res;
 }
 
+
 A_node* getVinNodes(std::list<A_node*>& set, const Vector2d& v){
 	A_node* res = NULL;
 	std::list<A_node*>::iterator tmp_it = set.begin();
 	for(;tmp_it != set.end(); ++tmp_it){
-		if (v == (*tmp_it)->_v)
+		if (v == (*tmp_it)->_v){
 			res = *tmp_it;
-		break;
+			break;
+		}
 	}
 	return res;
+}
+
+
+bool min_for_A_nodes(A_node* a, A_node*b){
+	return a->_f < b->_f;
 }
 
 
 static bool deleteAll( A_node * theElement ) { delete theElement; return true; }
 
 typedef float (*heuristic_cost_estimate)(const Vector2d& start, const Vector2d& finish);
+
+float newHeuristic(const Vector2d& start, const Vector2d& finish){
+	return abs(start.x() - finish.x()) + abs(start.y() - finish.y());
+}
+
+void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set);
+void debugPrintPath(const model::World& world, std::list<Vector2d>& path);
+
 
 std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish){
 	std::list<A_node*> closed_set;
@@ -92,18 +115,20 @@ std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const
 	open_set.push_back(start_node);
 
 	while (!open_set.empty()){
-		A_node* x = *min_element(open_set.begin(), open_set.end()); 
+		A_node* x = *min_element(open_set.begin(), open_set.end(), min_for_A_nodes);
+		//debugPrint(world, closed_set, open_set);
 
 		if (x->_v == finish){
 			std::list<Vector2d> res = reconstructPath(x);
 			closed_set.remove_if(deleteAll);
 			open_set.remove_if(deleteAll);
+			//debugPrintPath(world, res);
 			return res;
 		}
-
-		closed_set.push_back(x);	
+	
 		open_set.remove(x);
-		
+		closed_set.push_back(x);
+
 		//grab neighbors for x
 		std::list<Vector2d> neighbors = grabNeighbors(world, x->_v);
 		std::list<Vector2d>::iterator it = neighbors.begin();
@@ -114,15 +139,15 @@ std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const
 				continue;
 
 			float tentative_g = x->_g + dist(*it, x->_v);
-			bool tentative_is_better = false;
 
 			A_node* y = getVinNodes(open_set, *it);
 			if (NULL != y){
-				if (tentative_g < y->_g)
+				if (tentative_g < y->_g){
 					y->_g = tentative_g;
 					y->_h = hce(y->_v, finish);
 					y->_f = y->_g + y->_h;
 					y->_prev = x;
+				}
 			}else{
 				A_node *new_node = new A_node(*it, tentative_g, hce(*it, finish), x);
 				open_set.push_back(new_node);
@@ -130,4 +155,40 @@ std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const
 		}
 	}
 	assert(0);
+}
+
+
+std::ofstream gOut("debug.txt");
+
+void debugPrintPath(const model::World& world, std::list<Vector2d>& path){
+	for (int j = 0; j < world.getHeight(); ++j){
+		for (int i = 0; i < world.getWidth(); ++i){
+			Vector2d t(i, j);
+			if (path.end() != std::find(path.begin(), path.end(), t))
+				gOut << '1';
+			else
+				gOut << '*';
+		}
+		gOut << '\n';
+	}
+
+	gOut << "\n\n";
+}
+
+void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set){
+	for (int j = 0; j < world.getHeight(); ++j){
+		for (int i = 0; i < world.getWidth(); ++i){
+			Vector2d t(i, j);
+			if (NULL != getVinNodes(closed_set, t))
+				gOut << '1';
+			else if (NULL != getVinNodes(open_set, t))
+				gOut << '?';
+			else 
+				gOut << '*';
+
+		}
+		gOut << '\n';
+	}
+	
+	gOut << "\n\n";
 }

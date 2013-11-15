@@ -35,12 +35,11 @@ void MyStrategy::move(const Trooper& self, const World& world, const Game& game,
 	if (gQueue.empty())
 		calc(world, src, dst);
 
+	move.setAction(MOVE);
+	move.setX(gQueue.begin()->x());
+	move.setY(gQueue.begin()->y());
+	gQueue.pop_front();
 
-		move.setAction(MOVE);
-		move.setX(gQueue.begin()->x());
-		move.setY(gQueue.begin()->y());
-		gQueue.pop_front();
-
-		if (self.getActionPoints() == 2)
-			gQueue.clear();
+	if (self.getActionPoints() == 2)
+		gQueue.clear();
 }

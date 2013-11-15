@@ -98,7 +98,7 @@ static bool deleteAll( A_node * theElement ) { delete theElement; return true; }
 typedef float (*heuristic_cost_estimate)(const Vector2d& start, const Vector2d& finish);
 
 float newHeuristic(const Vector2d& start, const Vector2d& finish){
-	return abs(start.x() - finish.x()) + abs(start.y() - finish.y());
+	return (float)abs(start.x() - finish.x()) + abs(start.y() - finish.y());
 }
 
 void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set);
@@ -154,7 +154,8 @@ std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const
 			}
 		}
 	}
-	assert(0);
+	std::list<Vector2d> empty;
+	return empty;
 }
 
 

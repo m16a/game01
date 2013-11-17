@@ -90,9 +90,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ActionChain.cpp" />
+    <ClCompile Include="ActionFactory.cpp" />
+    <ClCompile Include="ActionQueue.cpp" />
     <ClCompile Include="GeomMisc.cpp" />
     <ClCompile Include="MyStrategy.cpp" />
     <ClCompile Include="PathFinder.cpp" />
+    <ClCompile Include="Prophet.cpp" />
     <ClCompile Include="RemoteProcessClient.cpp" />
     <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Strategy.cpp" />
@@ -108,11 +112,16 @@
     <ClCompile Include="model\Trooper.cpp" />
     <ClCompile Include="model\Unit.cpp" />
     <ClCompile Include="model\World.cpp" />
+    <ClCompile Include="Tactician.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActionChain.h" />
+    <ClInclude Include="ActionFactory.h" />
+    <ClInclude Include="ActionQueue.h" />
     <ClInclude Include="GeomMisc.h" />
     <ClInclude Include="MyStrategy.h" />
     <ClInclude Include="PathFinder.h" />
+    <ClInclude Include="Prophet.h" />
     <ClInclude Include="RemoteProcessClient.h" />
     <ClInclude Include="Runner.h" />
     <ClInclude Include="Strategy.h" />
@@ -130,6 +139,7 @@
     <ClInclude Include="csimplesocket\PassiveSocket.h" />
     <ClInclude Include="csimplesocket\SimpleSocket.h" />
     <ClInclude Include="csimplesocket\StatTimer.h" />
+    <ClInclude Include="Tactician.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

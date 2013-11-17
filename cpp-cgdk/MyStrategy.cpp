@@ -6,40 +6,30 @@
 
 #include "PathFinder.h"
 #include "GeomMisc.h"
+#include "ActionQueue.h"
 
 using namespace model;
 using namespace std;
 
+ActionQueue gActionQueue;
+
 MyStrategy::MyStrategy() { }
 
-std::list<Vector2d> gQueue;
-
-void calc(const World& world, const Vector2d& src, const Vector2d& dst){
-	PathFinder pf;
-	gQueue = pf.calcOptimalPath(world, src, dst);
-	gQueue.pop_front();
-}
 
 void MyStrategy::move(const Trooper& self, const World& world, const Game& game, Move& move) {
-    if (self.getActionPoints() < game.getStandingMoveCost()) {
-		gQueue.clear();
-        return;
-    }
+	if (self.getActionPoints() < game.getStandingMoveCost()) {
+		return;
+	}
+	gActionQueue.createQueue(world, game, self);
 
-	
-	Vector2d dst(1, 1);
-	Vector2d src(self.getX(), self.getY());
+	if (gActionQueue.m_chain && !(gActionQueue.m_chain->chain.empty())){
+		ActionChunk chunk = *(gActionQueue.m_chain->chain.begin());
 
-	//std::list<Vector2d> queue = pf.calcOptimalPath(world, src, dst);
-	
-	if (gQueue.empty())
-		calc(world, src, dst);
+		move.setAction(chunk.action_type);
 
-	move.setAction(MOVE);
-	move.setX(gQueue.begin()->x());
-	move.setY(gQueue.begin()->y());
-	gQueue.pop_front();
-
-	if (self.getActionPoints() == 2)
-		gQueue.clear();
+		if (!(chunk.target == Vector2d(-1, -1))){
+			move.setX(chunk.target.x());
+			move.setY(chunk.target.y());
+		}
+	}
 }

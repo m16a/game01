@@ -1,13 +1,23 @@
 #pragma once
 
+#include <list>
+
 #include "Strategy.h"
+#include "Tactician.h"
+
+
+class ActionChain;
 
 class ActionFactory
 {
 public:
-	ActionFactory(model::World* w): m_w(w){};
+	ActionFactory(const model::World* w, const model::Game* g): m_w(w), m_game(g){};
 	~ActionFactory(void);
-	
+	std::list<ActionChain*> createChains(const model::World& w, const model::Trooper& t, std::list<Tactician::Tactic> tactics);
 private:
-	model::World* m_w; //weak
+
+	bool isActionAvailable(const model::Trooper& t, model::ActionType action);
+
+	const model::World* m_w; //weak
+	const model::Game* m_game; //weak
 };

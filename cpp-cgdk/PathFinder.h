@@ -12,5 +12,8 @@ public:
 
 	std::list<Vector2d> calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish);
 	bool test();
+	static bool isTropperInCell(const model::World& w, const Vector2d& v);
 
 };
+
+std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v);

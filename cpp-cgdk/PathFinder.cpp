@@ -53,22 +53,34 @@ std::list<Vector2d> reconstructPath(const A_node* end){
 	}
 	return result;
 }
+bool PathFinder::isTropperInCell(const model::World& w, const Vector2d& v){
+	const std::vector<model::Trooper>& troopers = w.getTroopers();
+	bool res = false;
+	std::vector<model::Trooper>::const_iterator it = troopers.begin();
+	for (; it != troopers.end(); ++it){
+		if (Vector2d(it->getX(), it->getY()) == v){
+			res = true;
+			break;
+		}
+	}
 
+	return res;
+}
 
 std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v){
 	std::list<Vector2d> res;
 	const std::vector<std::vector<model::CellType> >& cells = w.getCells();
 
-	if (v.x()-1 >= 0 && model::FREE == cells[v.x()-1][v.y()])
+	if (v.x() - 1 >= 0 && model::FREE == cells[v.x() - 1][v.y()] && !PathFinder::isTropperInCell(w, Vector2d(v.x() - 1, v.y())))
 		res.push_back(Vector2d(v.x()-1, v.y()));
 
-	if (v.x()+1 < w.getWidth() && model::FREE == cells[v.x()+1][v.y()])
+	if (v.x() + 1 < w.getWidth() && model::FREE == cells[v.x() + 1][v.y()] && !PathFinder::isTropperInCell(w, Vector2d(v.x() + 1, v.y())))
 		res.push_back(Vector2d(v.x()+1, v.y()));
 
-	if (v.y()-1 >= 0 && model::FREE == cells[v.x()][v.y()-1])
+	if (v.y() - 1 >= 0 && model::FREE == cells[v.x()][v.y() - 1] && !PathFinder::isTropperInCell(w, Vector2d(v.x(), v.y() - 1)))
 		res.push_back(Vector2d(v.x(), v.y()-1));
 
-	if (v.y()+1 < w.getHeight() && model::FREE == cells[v.x()][v.y()+1])
+	if (v.y() + 1 < w.getHeight() && model::FREE == cells[v.x()][v.y() + 1] && !PathFinder::isTropperInCell(w, Vector2d(v.x(), v.y()+1)))
 		res.push_back(Vector2d(v.x(), v.y()+1));
 
 	return res;
@@ -159,37 +171,37 @@ std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const
 }
 
 
-std::ofstream gOut("debug.txt");
+//std::ofstream gOut("debug.txt");
 
-void debugPrintPath(const model::World& world, std::list<Vector2d>& path){
-	for (int j = 0; j < world.getHeight(); ++j){
-		for (int i = 0; i < world.getWidth(); ++i){
-			Vector2d t(i, j);
-			if (path.end() != std::find(path.begin(), path.end(), t))
-				gOut << '1';
-			else
-				gOut << '*';
-		}
-		gOut << '\n';
-	}
-
-	gOut << "\n\n";
-}
-
-void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set){
-	for (int j = 0; j < world.getHeight(); ++j){
-		for (int i = 0; i < world.getWidth(); ++i){
-			Vector2d t(i, j);
-			if (NULL != getVinNodes(closed_set, t))
-				gOut << '1';
-			else if (NULL != getVinNodes(open_set, t))
-				gOut << '?';
-			else 
-				gOut << '*';
-
-		}
-		gOut << '\n';
-	}
-	
-	gOut << "\n\n";
-}
+//void debugPrintPath(const model::World& world, std::list<Vector2d>& path){
+//	for (int j = 0; j < world.getHeight(); ++j){
+//		for (int i = 0; i < world.getWidth(); ++i){
+//			Vector2d t(i, j);
+//			if (path.end() != std::find(path.begin(), path.end(), t))
+//				gOut << '1';
+//			else
+//				gOut << '*';
+//		}
+//		gOut << '\n';
+//	}
+//
+//	gOut << "\n\n";
+//}
+//
+//void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set){
+//	for (int j = 0; j < world.getHeight(); ++j){
+//		for (int i = 0; i < world.getWidth(); ++i){
+//			Vector2d t(i, j);
+//			if (NULL != getVinNodes(closed_set, t))
+//				gOut << '1';
+//			else if (NULL != getVinNodes(open_set, t))
+//				gOut << '?';
+//			else 
+//				gOut << '*';
+//
+//		}
+//		gOut << '\n';
+//	}
+//	
+//	gOut << "\n\n";
+//}

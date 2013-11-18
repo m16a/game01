@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <cstdlib>
+#include<time.h>
 
 #include "PathFinder.h"
 #include "GeomMisc.h"
@@ -19,6 +20,13 @@ MyStrategy::MyStrategy() { }
 void MyStrategy::move(const Trooper& self, const World& world, const Game& game, Move& move) {
 	if (self.getActionPoints() < game.getStandingMoveCost()) {
 		return;
+	}
+
+	static bool once = false;
+
+	if (!once){
+		srand(time(NULL));
+		once = true;
 	}
 	gActionQueue.createQueue(world, game, self);
 

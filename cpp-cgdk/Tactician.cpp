@@ -22,7 +22,7 @@ std::list<Tactician::Tactic> Tactician::getActions() const{
 	
 	if (isEnemy)
 		res.push_back(ATTACK);
-	else
-		res.push_back(MOVE);
+
+	res.push_back(MOVE);
 	return res;
 }

@@ -17,7 +17,6 @@ ActionQueue::~ActionQueue()
 }
 
 void ActionQueue::createQueue(const model::World& w, const model::Game& g, const model::Trooper& trooper){
-
 	//TODO: now action recalculates on every update. to optimize
 	if (1 || trooper.getId() != m_currExecutorID){
 
@@ -29,12 +28,10 @@ void ActionQueue::createQueue(const model::World& w, const model::Game& g, const
 		Tactician t(&w);
 		std::list<Tactician::Tactic> tactics = t.getActions();
 		
-
 		ActionFactory af(&w, &g);
 		std::list<ActionChain*> available_chains = af.createChains(w, trooper, tactics);
 		
 		Prophet p;
-
 		m_chain = p.chooseBest(available_chains);
 	}
 }

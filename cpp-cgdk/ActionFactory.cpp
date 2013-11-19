@@ -10,9 +10,29 @@ ActionFactory::~ActionFactory(void)
 {
 }
 
+Vector2d gMainDst(-1,-1);
+
 std::list<model::TrooperType> gMove_head;
 
 std::list<Vector2d> gDirections;
+
+const int kMinDist = 1;
+const int kMaxDist = 4;
+
+bool isFeetDirection(const Vector2d& v, int x, int y, const Vector2d& dir){
+	bool res = false;
+
+	int dx = x - v.x();
+	int dy = y - v.y();
+
+	if (dir.x())
+		res = abs(dy) <= kMinDist && dx * dir.x() >= 0;
+	else
+		res = abs(dx) <= kMinDist && dy * dir.y() >= 0;
+
+	return res;
+}
+
 
 std::vector<Vector2d> getDstsWithDir(const model::World& w, const Vector2d susanin_v, const Vector2d dir){
 	std::vector<Vector2d> res;
@@ -20,11 +40,11 @@ std::vector<Vector2d> getDstsWithDir(const model::World& w, const Vector2d susan
 	for (int i = 0; i < w.getWidth(); i++)
 	for (int j = 0; j < w.getHeight(); j++){
 		float d = dist(susanin_v, Vector2d(i, j));
-		if (d >=1 && d <= 3 &&
+
+		if (d > kMinDist && d < kMaxDist &&
 			cells[i][j] == model::FREE &&
 			!PathFinder::isTropperInCell(w, Vector2d(i, j)) &&
-			susanin_v.x() * dir.x() >= i * dir.x() &&
-			susanin_v.y() * dir.y() >= j * dir.y())
+			isFeetDirection(susanin_v, i, j, dir))
 			res.push_back(Vector2d(i, j));
 	}
 	return res;
@@ -64,7 +84,33 @@ Vector2d findDest(const model::World& w, const Vector2d susanin_v){
 	return res;
 }
 
-std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics){
+Vector2d findNearestFree(const model::World& w, const Vector2d& src, const Vector2d& dst){
+	Vector2d res(0, 0);
+	std::list<Vector2d> n = grabNeighbors(w, dst);
+
+	std::list<Vector2d> neighborsOfNeighbors;
+
+	std::list<Vector2d>::iterator it = n.begin();
+	for (; it != n.end(); ++it){
+		std::list<Vector2d> tmp = grabNeighbors(w, *it);
+		neighborsOfNeighbors.insert(neighborsOfNeighbors.begin(), tmp.begin(), tmp.end());
+	}
+	neighborsOfNeighbors.unique();
+
+	std::list<Vector2d>::iterator it2 = neighborsOfNeighbors.begin();
+	float min = 1 << 20;
+	for (; it2 != neighborsOfNeighbors.end(); ++it2){
+		float d = dist(src, *it2);//TODO: bad metrics
+		if (d < min){
+			min = d;
+			res = *it2;
+		}
+	}
+	return res;
+}
+
+
+std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 
 	std::list<ActionChain*> res_chains;
 	ActionChain* new_chain = NULL;
@@ -79,14 +125,15 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			int damage = (*it).getMaximalHitpoints() - (*it).getHitpoints();
 			if ((*it).isTeammate() && damage > 0){
 				float d = trooper.getDistanceTo(*it);
-				float priority_value = 20 * d + damage;//TODO: to consts
+				
+				float priority_value = (d ? d : 3) * 20 + damage;//TODO: to consts
 				if (priority_value > max){
 					max = priority_value;
 					trooperToHeal = &(*it);
 				}
 			}
 		}
-		//TODO: self healing
+		//TODO: improve self healing
 		if (NULL != trooperToHeal){
 			std::list<ActionChunk> c;
 			if (trooper.getDistanceTo(*trooperToHeal) > 1.1)
@@ -113,7 +160,6 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 					}
 				}
 
-
 				std::list<Vector2d>::iterator it2 = bestPath.begin();
 				for (; it2 != bestPath.end(); ++it2){
 					ActionChunk chunk(model::MOVE, *it2);
@@ -126,7 +172,6 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			ActionChain *new_chain = new ActionChain();
 			new_chain->executor = &trooper;
 			new_chain->chain = c;
-
 
 			ActionChunk first = *(c.begin());
 			model::ActionType firstType = first.action_type;
@@ -190,30 +235,16 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			}
 		}
 
-		Vector2d dst(-1, -1);
-		dst = Vector2d(susanin->getX(), susanin->getY());
-		if (trooper.getDistanceTo(*susanin) == 0){
-			//dst = Vector2d(1, 18);
-			//TODO: where to go?
-			dst = findDest(w, dst);
-		}
-		
-		if (PathFinder::isTropperInCell(w, dst)){
-			std::list<Vector2d> n = grabNeighbors(w, dst);
-			std::list<Vector2d>::iterator it = n.begin();
-			float min = 1 << 20;
-			for (; it != n.end(); ++it){
-				float d = trooper.getDistanceTo(it->x(), it->y());
-				if (d < min){
-					min = d;
-					dst = *it;
-				}
-			}
-
-		}
-
-
+		Vector2d dst = Vector2d(susanin->getX(), susanin->getY());
 		Vector2d src(trooper.getX(), trooper.getY());
+		if (trooper.getDistanceTo(*susanin) == 0){
+			if (isFirstMove)
+				gMainDst = findDest(w, dst);
+
+			dst = gMainDst;
+		}else
+			dst = findNearestFree(w, src, dst);
+
 		PathFinder pf;
 		std::list<Vector2d> path = pf.calcOptimalPath(w, src, dst);
 		if (!path.empty()){
@@ -233,6 +264,10 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			new_chain->executor = &trooper;
 			new_chain->chain = c;
 			res_chains.push_back(new_chain);
+		}
+		else{//try to change susanin
+			gMove_head.push_back(*(gMove_head.begin()));
+			gMove_head.erase(gMove_head.begin());
 		}
 	}
 

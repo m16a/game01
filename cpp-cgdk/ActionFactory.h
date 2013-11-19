@@ -13,7 +13,7 @@ class ActionFactory
 public:
 	ActionFactory(const model::World* w, const model::Game* g): m_w(w), m_game(g){};
 	~ActionFactory(void);
-	std::list<ActionChain*> createChains(const model::World& w, const model::Trooper& t, std::list<Tactician::Tactic> tactics);
+	std::list<ActionChain*> createChains(const model::World& w, const model::Trooper& t, std::list<Tactician::Tactic> tactics, bool isFirstMove);
 
 	bool isActionAvailable(const model::Trooper& t, model::ActionType action);
 private:

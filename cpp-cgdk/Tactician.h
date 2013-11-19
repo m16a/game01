@@ -1,7 +1,8 @@
 #pragma once
 #include "Strategy.h"
 #include <list>
-
+#include <vector>
+#include "GeomMisc.h"
 
 class Tactician
 {
@@ -14,13 +15,14 @@ public:
 		SPECIAL
 	};
 
-
 	Tactician(const model::World* w):m_w(w){};
 	virtual ~Tactician(void);
 	
 	std::list<Tactic> getActions() const;
 
-protected:
-	const model::World* m_w; //weak
+	void makeSafityMap();
 
+private:
+	const model::World* m_w; //weak
+	Matrix m_safity_map;
 };

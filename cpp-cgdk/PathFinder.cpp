@@ -113,8 +113,8 @@ float newHeuristic(const Vector2d& start, const Vector2d& finish){
 	return (float)abs(start.x() - finish.x()) + abs(start.y() - finish.y());
 }
 
-void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set);
-void debugPrintPath(const model::World& world, std::list<Vector2d>& path);
+//void debugPrint(const model::World& world, std::list<A_node*>& closed_set, std::list<A_node*>& open_set);
+//void debugPrintPath(const model::World& world, std::list<Vector2d>& path);
 
 
 std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish){

@@ -32,7 +32,8 @@ void ActionQueue::createQueue(const model::World& w, const model::Game& g, const
 	}
 	Tactician t(&w);
 	std::list<Tactician::Tactic> tactics = t.getActions();
-		
+	t.makeSafityMap();
+
 	ActionFactory af(&w, &g);
 	std::list<ActionChain*> available_chains = af.createChains(w, trooper, tactics, isFirstMove);
 		

@@ -180,6 +180,18 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\ActionChain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ActionFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ActionQueue.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\GeomMisc.cpp"
 				>
 			</File>
@@ -192,6 +204,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Prophet.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\RemoteProcessClient.cpp"
 				>
 			</File>
@@ -201,6 +217,10 @@
 			</File>
 			<File
 				RelativePath=".\Strategy.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Tactician.cpp"
 				>
 			</File>
 			<Filter
@@ -266,6 +286,18 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\ActionChain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ActionFactory.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ActionQueue.h"
+				>
+			</File>
+			<File
 				RelativePath=".\GeomMisc.h"
 				>
 			</File>
@@ -278,6 +310,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Prophet.h"
+				>
+			</File>
+			<File
 				RelativePath=".\RemoteProcessClient.h"
 				>
 			</File>
@@ -287,6 +323,10 @@
 			</File>
 			<File
 				RelativePath=".\Strategy.h"
+				>
+			</File>
+			<File
+				RelativePath=".\Tactician.h"
 				>
 			</File>
 			<Filter

@@ -16,4 +16,4 @@ public:
 
 };
 
-std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v);
+std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v, bool ignoreTroopers = false);

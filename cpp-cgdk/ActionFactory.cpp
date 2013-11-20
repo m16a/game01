@@ -150,24 +150,25 @@ Vector2d findNearestFree(const model::World& w, const Vector2d& src, const Vecto
 	}
 
 	if (min > 7){
+		n = grabNeighbors(w, dst, true);
 		std::list<Vector2d>::iterator it = n.begin();
 		for (; it != n.end(); ++it){
 			std::list<Vector2d> tmp = grabNeighbors(w, *it);
-			neighborsOfNeighbors.insert(neighborsOfNeighbors.begin(), tmp.begin(), tmp.end());
+			n.insert(n.begin(), tmp.begin(), tmp.end());
 		}
-		neighborsOfNeighbors.unique();
+		n.unique();
 
 		PathFinder pf;
-		std::list<Vector2d>::iterator it2 = neighborsOfNeighbors.begin();
+		std::list<Vector2d>::iterator it2 = n.begin();
 		int m = 1000;
-		for (; it2 != neighborsOfNeighbors.end(); ++it2){
+		for (; it2 != n.end(); ++it2){
 			std::list<Vector2d> path = pf.calcOptimalPath(w, src, *it2);
 			if (path.empty())
 				continue;
 			path.pop_front();
 			int d = path.size();
 			if (d < m){
-				min = d;
+				m = d;
 				res = *it2;
 			}
 		}
@@ -303,7 +304,7 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 				float min = 1 << 20;
 				Vector2d approximate(-1, -1);
 				for (; it != players.end(); ++it){
-					if (it->getName() == "m16a")// || it->getName() == "MyStrategy")
+					if (it->getName() == "m16a" || it->getName() == "MyStrategy")
 						continue;
 					Vector2d tmp(it->getApproximateX(), it->getApproximateY());
 					float d = dist(tmp, Vector2d(trooper.getX(), trooper.getY()));

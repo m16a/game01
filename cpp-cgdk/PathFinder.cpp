@@ -67,20 +67,20 @@ bool PathFinder::isTropperInCell(const model::World& w, const Vector2d& v){
 	return res;
 }
 
-std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v){
+std::list<Vector2d> grabNeighbors(const model::World& w, const Vector2d& v, bool ignoreTroopers/*= false*/){
 	std::list<Vector2d> res;
 	const std::vector<std::vector<model::CellType> >& cells = w.getCells();
 
-	if (v.x() - 1 >= 0 && model::FREE == cells[v.x() - 1][v.y()] && !PathFinder::isTropperInCell(w, Vector2d(v.x() - 1, v.y())))
+	if (v.x() - 1 >= 0 && model::FREE == cells[v.x() - 1][v.y()] && (ignoreTroopers || !PathFinder::isTropperInCell(w, Vector2d(v.x() - 1, v.y()))))
 		res.push_back(Vector2d(v.x()-1, v.y()));
 
-	if (v.x() + 1 < w.getWidth() && model::FREE == cells[v.x() + 1][v.y()] && !PathFinder::isTropperInCell(w, Vector2d(v.x() + 1, v.y())))
+	if (v.x() + 1 < w.getWidth() && model::FREE == cells[v.x() + 1][v.y()] && (ignoreTroopers || !PathFinder::isTropperInCell(w, Vector2d(v.x() + 1, v.y()))))
 		res.push_back(Vector2d(v.x()+1, v.y()));
 
-	if (v.y() - 1 >= 0 && model::FREE == cells[v.x()][v.y() - 1] && !PathFinder::isTropperInCell(w, Vector2d(v.x(), v.y() - 1)))
+	if (v.y() - 1 >= 0 && model::FREE == cells[v.x()][v.y() - 1] && (ignoreTroopers || !PathFinder::isTropperInCell(w, Vector2d(v.x(), v.y() - 1))))
 		res.push_back(Vector2d(v.x(), v.y()-1));
 
-	if (v.y() + 1 < w.getHeight() && model::FREE == cells[v.x()][v.y() + 1] && !PathFinder::isTropperInCell(w, Vector2d(v.x(), v.y()+1)))
+	if (v.y() + 1 < w.getHeight() && model::FREE == cells[v.x()][v.y() + 1] && (ignoreTroopers || !PathFinder::isTropperInCell(w, Vector2d(v.x(), v.y()+1))))
 		res.push_back(Vector2d(v.x(), v.y()+1));
 
 	return res;

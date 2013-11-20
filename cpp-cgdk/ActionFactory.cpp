@@ -298,13 +298,14 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			&& isActionAvailable(trooper, model::REQUEST_ENEMY_DISPOSITION)){
 
 			const std::vector<model::Player>players = w.getPlayers();
-			if (players[0].getApproximateX() != -1 && players[1].getApproximateX() != -1){
+			if (players[0].getApproximateX() != -1 || players[1].getApproximateX() != -1 ||
+				players[2].getApproximateX() != -1 || players[3].getApproximateX() != -1){
 				//already we have this info
 				std::vector<model::Player>::const_iterator it = players.begin();
 				float min = 1 << 20;
 				Vector2d approximate(-1, -1);
 				for (; it != players.end(); ++it){
-					if (it->getName() == "m16a" || it->getName() == "MyStrategy")
+					if (it->getName() == "m16a" || it->getName() == "MyStrategy" || it->getApproximateX() == -1)
 						continue;
 					Vector2d tmp(it->getApproximateX(), it->getApproximateY());
 					float d = dist(tmp, Vector2d(trooper.getX(), trooper.getY()));

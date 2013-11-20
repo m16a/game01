@@ -67,6 +67,8 @@
       <AdditionalLibraryDirectories>C:\Program Files\Microsoft SDKs\Windows\v6.0A\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
@@ -86,6 +88,8 @@
       <SubSystem>Console</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <RandomizedBaseAddress>false</RandomizedBaseAddress>
+      <DataExecutionPrevention />
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
@@ -100,6 +104,7 @@
     <ClCompile Include="RemoteProcessClient.cpp" />
     <ClCompile Include="Runner.cpp" />
     <ClCompile Include="Strategy.cpp" />
+    <ClCompile Include="Tactician.cpp" />
     <ClCompile Include="csimplesocket\ActiveSocket.cpp" />
     <ClCompile Include="csimplesocket\HTTPActiveSocket.cpp" />
     <ClCompile Include="csimplesocket\PassiveSocket.cpp" />
@@ -112,7 +117,6 @@
     <ClCompile Include="model\Trooper.cpp" />
     <ClCompile Include="model\Unit.cpp" />
     <ClCompile Include="model\World.cpp" />
-    <ClCompile Include="Tactician.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionChain.h" />
@@ -125,6 +129,7 @@
     <ClInclude Include="RemoteProcessClient.h" />
     <ClInclude Include="Runner.h" />
     <ClInclude Include="Strategy.h" />
+    <ClInclude Include="Tactician.h" />
     <ClInclude Include="model\Bonus.h" />
     <ClInclude Include="model\Game.h" />
     <ClInclude Include="model\Move.h" />
@@ -139,7 +144,9 @@
     <ClInclude Include="csimplesocket\PassiveSocket.h" />
     <ClInclude Include="csimplesocket\SimpleSocket.h" />
     <ClInclude Include="csimplesocket\StatTimer.h" />
-    <ClInclude Include="Tactician.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

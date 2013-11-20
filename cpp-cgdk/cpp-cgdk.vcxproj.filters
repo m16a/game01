@@ -6,20 +6,20 @@
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="Source Files\csimplesocket">
-      <UniqueIdentifier>{30fa8b56-e064-4056-b4a2-f24d9a5fcd36}</UniqueIdentifier>
+      <UniqueIdentifier>{6611842c-cabd-4919-9ef3-2bdd86e77eef}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\model">
-      <UniqueIdentifier>{361817b8-7b97-4d46-8058-6207becb966d}</UniqueIdentifier>
+      <UniqueIdentifier>{4248ccc7-ef12-4e11-93b3-8bf0aa110013}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
     <Filter Include="Header Files\model">
-      <UniqueIdentifier>{2322968d-19ab-48ad-a5ff-81716fca0473}</UniqueIdentifier>
+      <UniqueIdentifier>{1b73318c-a5ce-4749-af33-9a5757a4e8c0}</UniqueIdentifier>
     </Filter>
     <Filter Include="Header Files\csimplesocket">
-      <UniqueIdentifier>{6a7229b2-58a5-4acf-8503-b91c79a33c13}</UniqueIdentifier>
+      <UniqueIdentifier>{0ad1d28d-1ed4-417b-b00d-4a090462917f}</UniqueIdentifier>
     </Filter>
     <Filter Include="Resource Files">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
@@ -27,7 +27,25 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ActionChain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ActionQueue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GeomMisc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="MyStrategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PathFinder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Prophet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="RemoteProcessClient.cpp">
@@ -37,6 +55,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Strategy.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Tactician.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="csimplesocket\ActiveSocket.cpp">
@@ -75,30 +96,27 @@
     <ClCompile Include="model\World.cpp">
       <Filter>Source Files\model</Filter>
     </ClCompile>
-    <ClCompile Include="GeomMisc.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PathFinder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tactician.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionQueue.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ActionChain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Prophet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ActionChain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionFactory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ActionQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GeomMisc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="MyStrategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathFinder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Prophet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="RemoteProcessClient.h">
@@ -108,6 +126,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Strategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Tactician.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="model\Bonus.h">
@@ -152,26 +173,8 @@
     <ClInclude Include="csimplesocket\StatTimer.h">
       <Filter>Header Files\csimplesocket</Filter>
     </ClInclude>
-    <ClInclude Include="GeomMisc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PathFinder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ActionFactory.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Tactician.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ActionQueue.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ActionChain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Prophet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram1.cd" />
   </ItemGroup>
 </Project>

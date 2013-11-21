@@ -218,15 +218,14 @@ ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& tr
 			}
 		}
 		
-		//TODO: improve self healing
-		if (NULL != trooperToHeal){
-		
+		bool readyToHeal = true;
+		if (NULL != trooperToHeal){		
 			bool isSelfHealing = trooper.getDistanceTo(*trooperToHeal) == 0;
 			
 			std::list<ActionChunk> c;
 			Vector2d pos(trooperToHeal->getX(), trooperToHeal->getY());
 
-			if (!isSelfHealing && dist(pos, Vector2d(trooper.getX(), trooper.getX())) > 1.1)
+			if (!isSelfHealing &&  trooper.getDistanceTo(*trooperToHeal) > 1.1)
 			{
 				std::list<Vector2d>neighbors = grabNeighbors(w, pos);
 				PathFinder pf;
@@ -247,19 +246,29 @@ ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& tr
 					}
 				}
 
-				std::list<Vector2d>::iterator it2 = bestPath.begin();
-				for (; it2 != bestPath.end(); ++it2){
-					ActionChunk chunk(model::MOVE, *it2);
-					c.push_back(chunk);
+				std::list<Vector2d> pathWithoutPlayers = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), pos, true);
+				const int kPathOverhead = 6;// to avoid very long run
+				if (!pathWithoutPlayers.empty() && pathWithoutPlayers.size() + kPathOverhead < bestPath.size())
+				{
+					std::list<Vector2d>::iterator it2 = bestPath.begin();
+					for (; it2 != bestPath.end(); ++it2){
+						ActionChunk chunk(model::MOVE, *it2);
+						c.push_back(chunk);
+					}
 				}
+				else
+					readyToHeal = false;
 			}
 
-			if (hasMedkit && (isSelfHealing && damage > 30 || !isSelfHealing && damage > 40)){
-				ActionChunk chunk(model::USE_MEDIKIT, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
-				c.push_back(chunk);
-			}else if (isMedic){
-				ActionChunk chunk(model::HEAL, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
-				c.push_back(chunk);
+			if (readyToHeal){
+				if (hasMedkit && (isSelfHealing && damage > 30 || !isSelfHealing && damage > 40)){
+					ActionChunk chunk(model::USE_MEDIKIT, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
+					c.push_back(chunk);
+				}
+				else if (isMedic){
+					ActionChunk chunk(model::HEAL, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
+					c.push_back(chunk);
+				}
 			}
 			
 			if (!c.empty()){

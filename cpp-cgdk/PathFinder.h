@@ -10,7 +10,7 @@ public:
 	PathFinder(void){};
 	virtual ~PathFinder(void){};
 
-	std::list<Vector2d> calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish);
+	std::list<Vector2d> calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish, bool ignorePlayers = false);
 	bool test();
 	static bool isTropperInCell(const model::World& w, const Vector2d& v);
 

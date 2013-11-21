@@ -117,7 +117,7 @@ float newHeuristic(const Vector2d& start, const Vector2d& finish){
 //void debugPrintPath(const model::World& world, std::list<Vector2d>& path);
 
 
-std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish){
+std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const Vector2d& start, const Vector2d& finish, bool ignorePlayers/*= false*/){
 	std::list<A_node*> closed_set;
 	std::list<A_node*> open_set;
 
@@ -142,7 +142,7 @@ std::list<Vector2d> PathFinder::calcOptimalPath(const model::World& world, const
 		closed_set.push_back(x);
 
 		//grab neighbors for x
-		std::list<Vector2d> neighbors = grabNeighbors(world, x->_v);
+		std::list<Vector2d> neighbors = grabNeighbors(world, x->_v, ignorePlayers);
 		std::list<Vector2d>::iterator it = neighbors.begin();
 
 		for (;it != neighbors.end(); ++it){

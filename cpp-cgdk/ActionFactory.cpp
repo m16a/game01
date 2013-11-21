@@ -192,79 +192,88 @@ Vector2d processApproximate(const model::World& w, const Vector2d& appr){
 	return res;
 }
 
+ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
+	ActionChain* res = NULL;
+	const std::vector<model::Trooper>& troopers = w.getTroopers();
+	if (model::FIELD_MEDIC == trooper.getType() &&
+		isActionAvailable(trooper, model::HEAL)){
+			const model::Trooper* trooperToHeal = NULL;
+			std::vector<model::Trooper>::const_iterator it = troopers.begin();
+			float max = 0;
+			for (; it != troopers.end(); ++it){
+				int damage = (*it).getMaximalHitpoints() - (*it).getHitpoints();
+				if ((*it).isTeammate() && damage > 0){
+					float d = trooper.getDistanceTo(*it);
+
+					float priority_value = (d ? 0 : 50) + damage;//TODO: to consts
+					if (priority_value > max){
+						max = priority_value;
+						trooperToHeal = &(*it);
+					}
+				}
+			}
+			//TODO: improve self healing
+			if (NULL != trooperToHeal){
+				std::list<ActionChunk> c;
+				if (trooper.getDistanceTo(*trooperToHeal) > 1.1)
+				{
+
+					Vector2d pos(trooperToHeal->getX(), trooperToHeal->getY());
+					std::list<Vector2d>neighbors = grabNeighbors(w, pos);
+					PathFinder pf;
+
+					std::list<Vector2d>::iterator it = neighbors.begin();
+
+					std::list<Vector2d> bestPath;
+					int minLengthPath = 1 << 20;
+					for (; it != neighbors.end(); ++it){
+						if (PathFinder::isTropperInCell(w, *it))
+							continue;
+						std::list<Vector2d> p = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), *it);
+						if (p.empty())
+							continue;
+						p.pop_front();
+						if (p.size() < minLengthPath){
+							minLengthPath = p.size();
+							bestPath = p;
+						}
+					}
+
+					std::list<Vector2d>::iterator it2 = bestPath.begin();
+					for (; it2 != bestPath.end(); ++it2){
+						ActionChunk chunk(model::MOVE, *it2);
+						c.push_back(chunk);
+					}
+				}
+				ActionChunk chunk(model::HEAL, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
+				c.push_back(chunk);
+
+				res = new ActionChain();
+				res->executor = &trooper;
+				res->chain = c;
+			}
+	}
+	return res;
+}
+
 std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 
 	std::list<ActionChain*> res_chains;
 	ActionChain* new_chain = NULL;
 	const std::vector<model::Trooper>& troopers = w.getTroopers();
 
-	if (model::FIELD_MEDIC == trooper.getType() &&
-		isActionAvailable(trooper, model::HEAL)){
-		const model::Trooper* trooperToHeal = NULL;
-		std::vector<model::Trooper>::const_iterator it = troopers.begin();
-		float max = 0;
-		for (; it != troopers.end(); ++it){
-			int damage = (*it).getMaximalHitpoints() - (*it).getHitpoints();
-			if ((*it).isTeammate() && damage > 0){
-				float d = trooper.getDistanceTo(*it);
-				
-				float priority_value = (d ? 0 : 50) + damage;//TODO: to consts
-				if (priority_value > max){
-					max = priority_value;
-					trooperToHeal = &(*it);
-				}
-			}
-		}
-		//TODO: improve self healing
-		if (NULL != trooperToHeal){
-			std::list<ActionChunk> c;
-			if (trooper.getDistanceTo(*trooperToHeal) > 1.1)
-			{
 
-				Vector2d pos(trooperToHeal->getX(), trooperToHeal->getY());
-				std::list<Vector2d>neighbors = grabNeighbors(w, pos);
-				PathFinder pf;
+	ActionChain* heal_chain = ActionFactory::heal(w, trooper, tactics, isFirstMove);
+	
+	if (heal_chain){
+		ActionChunk first = *((heal_chain->chain).begin());
+		model::ActionType firstType = first.action_type;
 
-				std::list<Vector2d>::iterator it = neighbors.begin();
-
-				std::list<Vector2d> bestPath;
-				int minLengthPath = 1 << 20;
-				for (; it != neighbors.end(); ++it){
-					if (PathFinder::isTropperInCell(w, *it))
-						continue;
-					std::list<Vector2d> p = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), *it);
-					if (p.empty())
-						continue;
-					p.pop_front();
-					if (p.size() < minLengthPath){
-						minLengthPath = p.size();
-						bestPath = p;
-					}
-				}
-
-				std::list<Vector2d>::iterator it2 = bestPath.begin();
-				for (; it2 != bestPath.end(); ++it2){
-					ActionChunk chunk(model::MOVE, *it2);
-					c.push_back(chunk);
-				}
-			}
-			ActionChunk chunk(model::HEAL, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
-			c.push_back(chunk);
-
-			ActionChain *new_chain = new ActionChain();
-			new_chain->executor = &trooper;
-			new_chain->chain = c;
-
-			ActionChunk first = *(c.begin());
-			model::ActionType firstType = first.action_type;
-
-			if (isActionAvailable(trooper, firstType))
-				res_chains.push_back(new_chain);
-			else
-				delete new_chain;
-		}
+		if (isActionAvailable(trooper, firstType))
+			res_chains.push_back(heal_chain);
+		else
+			delete heal_chain;
 	}
-
 	const model::Trooper* enemyToAttack = NULL;
 	if (tactics.end() != std::find(tactics.begin(), tactics.end(), Tactician::ATTACK) &&
 		isActionAvailable(trooper, model::SHOOT)){
@@ -305,7 +314,7 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 				float min = 1 << 20;
 				Vector2d approximate(-1, -1);
 				for (; it != players.end(); ++it){
-					if (it->getName() == "m16a" || /*it->getName() == "MyStrategy"||*/ it->getApproximateX() == -1)
+					if (it->getName() == "m16a" || it->getName() == "MyStrategy"|| it->getApproximateX() == -1)
 						continue;
 					Vector2d tmp(it->getApproximateX(), it->getApproximateY());
 					float d = dist(tmp, Vector2d(trooper.getX(), trooper.getY()));

@@ -195,63 +195,79 @@ Vector2d processApproximate(const model::World& w, const Vector2d& appr){
 ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 	ActionChain* res = NULL;
 	const std::vector<model::Trooper>& troopers = w.getTroopers();
-	if (model::FIELD_MEDIC == trooper.getType() &&
-		isActionAvailable(trooper, model::HEAL)){
-			const model::Trooper* trooperToHeal = NULL;
-			std::vector<model::Trooper>::const_iterator it = troopers.begin();
-			float max = 0;
-			for (; it != troopers.end(); ++it){
-				int damage = (*it).getMaximalHitpoints() - (*it).getHitpoints();
-				if ((*it).isTeammate() && damage > 0){
-					float d = trooper.getDistanceTo(*it);
 
-					float priority_value = (d ? 0 : 50) + damage;//TODO: to consts
-					if (priority_value > max){
-						max = priority_value;
-						trooperToHeal = &(*it);
-					}
+
+	bool hasMedkit = trooper.isHoldingMedikit();
+	bool isMedic = model::FIELD_MEDIC == trooper.getType();
+	if (hasMedkit || isMedic){	
+		const model::Trooper* trooperToHeal = NULL;
+		int damage = 0;
+		std::vector<model::Trooper>::const_iterator it = troopers.begin();
+		float max = 0;
+		for (; it != troopers.end(); ++it){
+			int dmg = (*it).getMaximalHitpoints() - (*it).getHitpoints();
+			if ((*it).isTeammate() && dmg > 0){
+				float d = trooper.getDistanceTo(*it);
+
+				float priority_value = (d ? 0 : 50) + dmg;//TODO: to consts
+				if (priority_value > max){
+					max = priority_value;
+					trooperToHeal = &(*it);
+					damage = dmg;
 				}
 			}
-			//TODO: improve self healing
-			if (NULL != trooperToHeal){
-				std::list<ActionChunk> c;
-				if (trooper.getDistanceTo(*trooperToHeal) > 1.1)
-				{
+		}
+		
+		//TODO: improve self healing
+		if (NULL != trooperToHeal){
+		
+			bool isSelfHealing = trooper.getDistanceTo(*trooperToHeal) == 0;
+			
+			std::list<ActionChunk> c;
+			Vector2d pos(trooperToHeal->getX(), trooperToHeal->getY());
 
-					Vector2d pos(trooperToHeal->getX(), trooperToHeal->getY());
-					std::list<Vector2d>neighbors = grabNeighbors(w, pos);
-					PathFinder pf;
+			if (!isSelfHealing && dist(pos, Vector2d(trooper.getX(), trooper.getX())) > 1.1)
+			{
+				std::list<Vector2d>neighbors = grabNeighbors(w, pos);
+				PathFinder pf;
+				std::list<Vector2d>::iterator it = neighbors.begin();
 
-					std::list<Vector2d>::iterator it = neighbors.begin();
-
-					std::list<Vector2d> bestPath;
-					int minLengthPath = 1 << 20;
-					for (; it != neighbors.end(); ++it){
-						if (PathFinder::isTropperInCell(w, *it))
-							continue;
-						std::list<Vector2d> p = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), *it);
-						if (p.empty())
-							continue;
-						p.pop_front();
-						if (p.size() < minLengthPath){
-							minLengthPath = p.size();
-							bestPath = p;
-						}
-					}
-
-					std::list<Vector2d>::iterator it2 = bestPath.begin();
-					for (; it2 != bestPath.end(); ++it2){
-						ActionChunk chunk(model::MOVE, *it2);
-						c.push_back(chunk);
+				std::list<Vector2d> bestPath;
+				int minLengthPath = 1 << 20;
+				for (; it != neighbors.end(); ++it){
+					if (PathFinder::isTropperInCell(w, *it))
+						continue;
+					std::list<Vector2d> p = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), *it);
+					if (p.empty())
+						continue;
+					p.pop_front();
+					if (p.size() < minLengthPath){
+						minLengthPath = p.size();
+						bestPath = p;
 					}
 				}
+
+				std::list<Vector2d>::iterator it2 = bestPath.begin();
+				for (; it2 != bestPath.end(); ++it2){
+					ActionChunk chunk(model::MOVE, *it2);
+					c.push_back(chunk);
+				}
+			}
+
+			if (hasMedkit && (isSelfHealing && damage > 30 || !isSelfHealing && damage > 40)){
+				ActionChunk chunk(model::USE_MEDIKIT, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
+				c.push_back(chunk);
+			}else if (isMedic){
 				ActionChunk chunk(model::HEAL, Vector2d(trooperToHeal->getX(), trooperToHeal->getY()));
 				c.push_back(chunk);
-
+			}
+			
+			if (!c.empty()){
 				res = new ActionChain();
 				res->executor = &trooper;
 				res->chain = c;
 			}
+		}
 	}
 	return res;
 }
@@ -421,6 +437,9 @@ bool ActionFactory::isActionAvailable(const model::Trooper& t, model::ActionType
 		break;
 	case model::REQUEST_ENEMY_DISPOSITION:
 		cost = m_game->getCommanderRequestEnemyDispositionCost();
+		break;
+	case model::USE_MEDIKIT:
+		cost = m_game->getFieldMedicHealCost();
 		break;
 		//TODO: add more actions
 	default:

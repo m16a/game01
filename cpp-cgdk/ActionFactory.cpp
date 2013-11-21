@@ -305,7 +305,7 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 				float min = 1 << 20;
 				Vector2d approximate(-1, -1);
 				for (; it != players.end(); ++it){
-					if (it->getName() == "m16a" || it->getName() == "MyStrategy" || it->getApproximateX() == -1)
+					if (it->getName() == "m16a" || /*it->getName() == "MyStrategy"||*/ it->getApproximateX() == -1)
 						continue;
 					Vector2d tmp(it->getApproximateX(), it->getApproximateY());
 					float d = dist(tmp, Vector2d(trooper.getX(), trooper.getY()));
@@ -380,7 +380,7 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			new_chain->chain = c;
 			res_chains.push_back(new_chain);
 		}
-		else{//try to change susanin
+		else if (susanin->getDistanceTo(trooper) == 0){//try to change susanin
 			gMove_head.push_back(*(gMove_head.begin()));
 			gMove_head.erase(gMove_head.begin());
 		}

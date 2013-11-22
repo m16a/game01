@@ -316,16 +316,47 @@ Vector2d findBestPositionToAttack(const model::World& w, const model::Trooper& t
 	return res;
 }
 
+int trooperDamage(const model::Trooper& t, model::TrooperStance stance){
+ int res = 0;
+ switch(stance){
+	case model::STANDING:
+		res = t.getStandingDamage();
+		break;
+	case model::KNEELING:
+		res = t.getKneelingDamage();
+		break;
+	case model::PRONE:
+		res = t.getProneDamage();
+		break;
+	default:
+		assert(0);
+		//it's seems something is going wrong
+		break;
+ }
+
+ return res;
+}
 
 ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 	ActionChain* res = NULL;
 	const model::Trooper* enemyToAttack = NULL;
 	const std::vector<model::Trooper>& troopers = w.getTroopers();
+
+	int curPoints = trooper.getActionPoints();
+
 	if (tactics.end() != std::find(tactics.begin(), tactics.end(), Tactician::ATTACK)){
 		std::vector<model::Trooper>::const_iterator it = troopers.begin();
 		float min = 1 << 20;
 		for (; it != troopers.end(); ++it){
 			if (!(*it).isTeammate()){
+
+				int health = it->getMaximalHitpoints() - it->getHitpoints();
+				if (w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), it->getX(), it->getY(), it->getStance())){
+					if (health < (curPoints / trooper.getShootCost()) * trooperDamage(trooper, trooper.getStance())){
+						enemyToAttack = &(*it);
+						break;
+					}
+				}
 				float d = trooper.getDistanceTo(*it);
 				if (d <= min ){
 					min = d;
@@ -334,7 +365,6 @@ ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& t
 			}
 		}
 	}
-
 
 	do{
 

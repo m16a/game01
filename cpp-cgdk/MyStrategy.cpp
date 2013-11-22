@@ -25,9 +25,9 @@ void MyStrategy::move(const Trooper& self, const World& world, const Game& game,
 	if (self.getActionPoints() < game.getStandingMoveCost()) {
 		return;
 	}
-//#ifdef _DEBUG  
+#ifdef _DEBUG  
 	clock_t startTime = clock();
-//#endif
+#endif
 
 	static bool once = false;
 
@@ -47,7 +47,7 @@ void MyStrategy::move(const Trooper& self, const World& world, const Game& game,
 			move.setY(chunk.target.y());
 		}
 	}
-//#ifdef _DEBUG  
+#ifdef _DEBUG  
 	clock_t endTime = clock();	
 	float diff = (endTime - startTime) / float(CLOCKS_PER_SEC);
 	gAllTime += diff;
@@ -55,5 +55,5 @@ void MyStrategy::move(const Trooper& self, const World& world, const Game& game,
 	if (diff > gMaxStep)
 		gMaxStep = diff;
 	printf("%f\t%f\t%f\n ", gAllTime, diff, gMaxStep);
-//#endif
+#endif
 }

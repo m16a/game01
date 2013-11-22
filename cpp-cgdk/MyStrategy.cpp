@@ -41,15 +41,14 @@ void MyStrategy::move(const Trooper& self, const World& world, const Game& game,
 	if (gActionQueue.m_chain && !(gActionQueue.m_chain->chain.empty())){
 		ActionChunk chunk = *(gActionQueue.m_chain->chain.begin());
 		
-		ActionFactory af(&world, &game);
-		if (!af.isActionAvailable(*(gActionQueue.m_chain->executor), chunk.action_type)){
-			int b = 1;
-		} 
-
 		move.setAction(chunk.action_type);
 
 
 #ifdef _DEBUG
+		ActionFactory af(&world, &game);
+		if (!af.isActionAvailable(*(gActionQueue.m_chain->executor), chunk.action_type)){
+			int b = 1;
+		} 
 		printf("\nUnit type%d:\t(%d, %d)\t%d\n", self.getType(), self.getX(), self.getY(), self.getStance());
 		printf("Action: %d\t(%d, %d):\n\n", chunk.action_type, chunk.target.x(), chunk.target.y());
 #endif

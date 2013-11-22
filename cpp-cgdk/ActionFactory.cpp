@@ -354,6 +354,21 @@ int trooperDamage(const model::Trooper& t, model::TrooperStance stance){
  return res;
 }
 
+model::TrooperStance getNextState(const model::Trooper& t, bool up){
+	if (up){
+		if(model::KNEELING == t.getStance())
+			return model::STANDING;
+		else if(model::PRONE == t.getStance())
+			return model::KNEELING;
+	}else{
+		if(model::KNEELING == t.getStance())
+			return model::PRONE;
+		else if(model::STANDING == t.getStance())
+			return model::KNEELING;
+	}
+	return model::UNKNOWN_STANCE;
+}
+
 ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 	ActionChain* res = NULL;
 	const model::Trooper* enemyToAttack = NULL;
@@ -361,6 +376,7 @@ ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& t
 
 	int curPoints = trooper.getActionPoints();
 	int enemyHealth = 0;
+	bool headShot = false;
 	if (tactics.end() != std::find(tactics.begin(), tactics.end(), Tactician::ATTACK)){
 		std::vector<model::Trooper>::const_iterator it = troopers.begin();
 		float min = 1 << 20;
@@ -371,6 +387,7 @@ ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& t
 				if (w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), it->getX(), it->getY(), it->getStance()))
 					if (health <= (curPoints / trooper.getShootCost()) * trooperDamage(trooper, trooper.getStance())){
 						enemyToAttack = &(*it);
+						headShot = true;
 						break;
 					}
 				
@@ -388,11 +405,24 @@ ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& t
 
 		if (enemyToAttack == NULL)
 			break;
-//run out
+
+		if (!headShot && trooper.getActionPoints() <= 4 && trooper.getActionPoints() > 1 && trooper.getStance() != model::PRONE &&
+			!w.isVisible(trooper.getShootingRange(), enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance(), trooper.getX(), trooper.getY(), getNextState(trooper, false)))
+		{
+			res = new ActionChain();
+			std::list<ActionChunk> c;
+			ActionChunk chunk(model::LOWER_STANCE, Vector2d(-1, -1));
+			c.push_back(chunk);
+			res->executor = &trooper;
+			res->chain = c;
+			break;
+		}
 		if (w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance())){
 			res = new ActionChain();
 			
-			if (enemyHealth > (curPoints / trooper.getShootCost()) * trooperDamage(trooper, trooper.getStance()) && trooper.getStance() != model::PRONE){
+			if (enemyHealth > (curPoints / trooper.getShootCost()) * trooperDamage(trooper, trooper.getStance()) &&
+				trooper.getStance() != model::PRONE &&
+				w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), getNextState(trooper, false), enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance())){
 				std::list<ActionChunk> c;
 				ActionChunk chunk(model::LOWER_STANCE, Vector2d(-1, -1));
 				c.push_back(chunk);

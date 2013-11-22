@@ -248,7 +248,7 @@ ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& tr
 
 				std::list<Vector2d> pathWithoutPlayers = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), pos, true);
 				const int kPathOverhead = 6;// to avoid very long run
-				if (!pathWithoutPlayers.empty() && pathWithoutPlayers.size() + kPathOverhead < bestPath.size())
+				if (!pathWithoutPlayers.empty() && pathWithoutPlayers.size() + kPathOverhead > bestPath.size())
 				{
 					std::list<Vector2d>::iterator it2 = bestPath.begin();
 					for (; it2 != bestPath.end(); ++it2){
@@ -281,6 +281,42 @@ ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& tr
 	return res;
 }
 
+Vector2d findBestPositionToAttack(const model::World& w, const model::Trooper& trooper, const model::Trooper& enemy){
+	Vector2d res(-1,-1);
+	PathFinder pf;
+	int bestDist = 1 << 20;
+	const std::vector<std::vector<model::CellType> >& cells = w.getCells();
+	for (int i = 0; i < w.getWidth(); i++){
+		for (int j = 0; j < w.getHeight(); j++){
+//			if (enemy.getDistanceTo(i,j) > 8 || cells[i][j] != model::FREE || PathFinder::isTropperInCell(w,Vector2d(i,j))) //dist to check. Too much???
+			if (trooper.getDistanceTo(i,j) > 5 || cells[i][j] != model::FREE || PathFinder::isTropperInCell(w,Vector2d(i,j))) //dist to check. Too much???
+				continue;
+			
+			if (!w.isVisible(trooper.getShootingRange(), i, j, model::STANDING, enemy.getX(), enemy.getY(), enemy.getStance()))
+				continue;
+
+			std::list<Vector2d> path = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), Vector2d(i, j));
+			
+			if(path.empty())
+				continue;
+
+			std::list<Vector2d> pathWithoutPlayers = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), Vector2d(i, j), true);
+
+			if (pathWithoutPlayers.size() + 3 < path.size())
+				continue;
+
+			int dist = path.size();
+			if (dist < bestDist){
+				bestDist = dist;
+				res = Vector2d(i,j);
+			}
+		}
+	}
+
+	return res;
+}
+
+
 ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 	ActionChain* res = NULL;
 	const model::Trooper* enemyToAttack = NULL;
@@ -291,23 +327,77 @@ ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& t
 		for (; it != troopers.end(); ++it){
 			if (!(*it).isTeammate()){
 				float d = trooper.getDistanceTo(*it);
-				if (d <= min && w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), it->getX(), it->getY(), it->getStance())){
+				if (d <= min ){
 					min = d;
 					enemyToAttack = &(*it);
 				}		
 			}
 		}
 	}
-	if (enemyToAttack){
-		res = new ActionChain();
-		std::list<ActionChunk> c;
-		ActionChunk chunk(model::SHOOT, Vector2d(enemyToAttack->getX(), enemyToAttack->getY()));
-		c.push_back(chunk);
-		c.push_back(chunk);
-		c.push_back(chunk);
-		res->executor = &trooper;
-		res->chain = c;
-	}
+
+
+	do{
+
+		if (enemyToAttack == NULL)
+			break;
+
+		if (w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance())){
+			res = new ActionChain();
+			std::list<ActionChunk> c;
+			ActionChunk chunk(model::SHOOT, Vector2d(enemyToAttack->getX(), enemyToAttack->getY()));
+			c.push_back(chunk);
+			res->executor = &trooper;
+			res->chain = c;
+
+		}else{//invisible
+			//try to stand up first
+			if (trooper.getStance() == model::PRONE && w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), model::KNEELING, enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance())){
+				res = new ActionChain();
+				std::list<ActionChunk> c;
+				ActionChunk chunk(model::RAISE_STANCE, Vector2d(-1, -1));
+				c.push_back(chunk);
+				res->executor = &trooper;
+				res->chain = c;
+				break;
+			}
+			
+			if (trooper.getStance() == model::KNEELING && w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), model::STANDING, enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance())){
+				res = new ActionChain();
+				std::list<ActionChunk> c;
+				ActionChunk chunk(model::RAISE_STANCE, Vector2d(-1, -1));
+				c.push_back(chunk);
+				res->executor = &trooper;
+				res->chain = c;
+				break;
+			}
+
+			//try to move
+			Vector2d dst = findBestPositionToAttack(w, trooper, *enemyToAttack);
+			if (dst == Vector2d(-1,-1))
+				break;
+
+
+			PathFinder pf;
+
+			std::list<Vector2d> path = pf.calcOptimalPath(w, Vector2d(trooper.getX(), trooper.getY()), dst);
+			if (path.empty())//overchecking
+				break;
+			path.pop_front();
+			
+			res = new ActionChain();
+			std::list<ActionChunk> c;
+			
+			std::list<Vector2d>::iterator it2 = path.begin();
+			for (; it2 != path.end(); ++it2){
+				ActionChunk chunk(model::MOVE, *it2);
+				c.push_back(chunk);
+			}
+			res->executor = &trooper;
+			res->chain = c;
+			break;
+		}
+	}while(0);
+
 	return res;
 }
 
@@ -387,16 +477,24 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 			gMove_head.push_back(model::COMMANDER);
 			gMove_head.push_back(model::FIELD_MEDIC);
 		}
-
-		std::list<model::TrooperType>::iterator type_it = gMove_head.begin();
 		const model::Trooper *susanin = NULL;
-		for (; type_it != gMove_head.end() && susanin == NULL; ++type_it){
-			std::vector<model::Trooper>::const_iterator tr_it = troopers.begin();
-			for (; tr_it != troopers.end(); ++tr_it){
-				if (tr_it->isTeammate() && tr_it->getType() == *type_it){
-					susanin = &(*tr_it);
+		
+		while(susanin == NULL){
+			std::list<model::TrooperType>::iterator type_it = gMove_head.begin();
+			for (; type_it != gMove_head.end() && susanin == NULL; ++type_it){
+				std::vector<model::Trooper>::const_iterator tr_it = troopers.begin();
+				for (; tr_it != troopers.end(); ++tr_it){
+					if (tr_it->isTeammate() && tr_it->getType() == *type_it){
+						susanin = &(*tr_it);
+					}
 				}
 			}
+
+			if (susanin == NULL){
+				gMove_head.push_back(*(gMove_head.begin()));
+				gMove_head.erase(gMove_head.begin());
+			}
+
 		}
 
 		Vector2d dst = Vector2d(susanin->getX(), susanin->getY());
@@ -440,7 +538,6 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 
 }
 
-
 bool ActionFactory::isActionAvailable(const model::Trooper& t, model::ActionType action){
 	int cost = 0;
 	switch (action)
@@ -470,8 +567,6 @@ bool ActionFactory::isActionAvailable(const model::Trooper& t, model::ActionType
 		assert(0);
 		break;
 	}
-
-
 
 	return t.getActionPoints() >= cost;
 }

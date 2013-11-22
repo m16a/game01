@@ -417,6 +417,17 @@ ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& t
 			res->chain = c;
 			break;
 		}
+
+		if (!headShot && trooper.isHoldingGrenade() && trooper.getDistanceTo(*enemyToAttack) <= 5 && trooper.getActionPoints() >= 8){
+			res = new ActionChain();
+			std::list<ActionChunk> c;
+			ActionChunk chunk(model::THROW_GRENADE, Vector2d(enemyToAttack->getX(), enemyToAttack->getY()));
+			c.push_back(chunk);
+			res->executor = &trooper;
+			res->chain = c;
+			break;
+		}
+
 		if (w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), enemyToAttack->getX(), enemyToAttack->getY(), enemyToAttack->getStance())){
 			res = new ActionChain();
 			
@@ -659,6 +670,9 @@ bool ActionFactory::isActionAvailable(const model::Trooper& t, model::ActionType
 	case model::RAISE_STANCE:
 	case model::LOWER_STANCE:
 		cost = m_game->getStanceChangeCost();
+		break;
+	case model::THROW_GRENADE:
+		cost = m_game->getGrenadeThrowCost();
 		break;
 	default:
 		assert(0);

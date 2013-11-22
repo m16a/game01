@@ -281,6 +281,36 @@ ActionChain* ActionFactory::heal(const model::World& w, const model::Trooper& tr
 	return res;
 }
 
+ActionChain* ActionFactory::atack(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
+	ActionChain* res = NULL;
+	const model::Trooper* enemyToAttack = NULL;
+	const std::vector<model::Trooper>& troopers = w.getTroopers();
+	if (tactics.end() != std::find(tactics.begin(), tactics.end(), Tactician::ATTACK)){
+		std::vector<model::Trooper>::const_iterator it = troopers.begin();
+		float min = 1 << 20;
+		for (; it != troopers.end(); ++it){
+			if (!(*it).isTeammate()){
+				float d = trooper.getDistanceTo(*it);
+				if (d <= min && w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), it->getX(), it->getY(), it->getStance())){
+					min = d;
+					enemyToAttack = &(*it);
+				}		
+			}
+		}
+	}
+	if (enemyToAttack){
+		res = new ActionChain();
+		std::list<ActionChunk> c;
+		ActionChunk chunk(model::SHOOT, Vector2d(enemyToAttack->getX(), enemyToAttack->getY()));
+		c.push_back(chunk);
+		c.push_back(chunk);
+		c.push_back(chunk);
+		res->executor = &trooper;
+		res->chain = c;
+	}
+	return res;
+}
+
 std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove){
 
 	std::list<ActionChain*> res_chains;
@@ -299,32 +329,17 @@ std::list<ActionChain*> ActionFactory::createChains(const model::World& w, const
 		else
 			delete heal_chain;
 	}
-	const model::Trooper* enemyToAttack = NULL;
-	if (tactics.end() != std::find(tactics.begin(), tactics.end(), Tactician::ATTACK) &&
-		isActionAvailable(trooper, model::SHOOT)){
-		std::vector<model::Trooper>::const_iterator it = troopers.begin();
 	
-		float min = 1 << 20;
-		for (; it != troopers.end(); ++it){
-			if (!(*it).isTeammate()){
-				float d = trooper.getDistanceTo(*it);
-				if (d <= min && w.isVisible(trooper.getShootingRange(), trooper.getX(), trooper.getY(), trooper.getStance(), it->getX(), it->getY(), it->getStance())){
-					min = d;
-					enemyToAttack = &(*it);
-				}		
-			}
-		}
-	}
-	if (enemyToAttack){
-		new_chain = new ActionChain();
-		std::list<ActionChunk> c;
-		ActionChunk chunk(model::SHOOT, Vector2d(enemyToAttack->getX(), enemyToAttack->getY()));
-		c.push_back(chunk);
-		c.push_back(chunk);
-		c.push_back(chunk);
-		new_chain->executor = &trooper;
-		new_chain->chain = c;
-		res_chains.push_back(new_chain);
+	ActionChain* atack_chain = ActionFactory::atack(w, trooper, tactics, isFirstMove);
+
+	if (atack_chain){//TODO: avoid copy-paste
+		ActionChunk first = *((atack_chain->chain).begin());
+		model::ActionType firstType = first.action_type;
+
+		if (isActionAvailable(trooper, firstType))
+			res_chains.push_back(atack_chain);
+		else
+			delete atack_chain;
 	}
 	
 	if (gMainDst == Vector2d(-1, -1)){

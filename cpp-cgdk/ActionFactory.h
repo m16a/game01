@@ -18,6 +18,7 @@ public:
 	bool isActionAvailable(const model::Trooper& t, model::ActionType action);
 private:
 ActionChain* heal(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove);
+ActionChain* atack(const model::World& w, const model::Trooper& trooper, std::list<Tactician::Tactic> tactics, bool isFirstMove);
 
 	const model::World* m_w; //weak
 	const model::Game* m_game; //weak

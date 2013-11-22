@@ -8,6 +8,7 @@
 #include "PathFinder.h"
 #include "GeomMisc.h"
 #include "ActionQueue.h"
+#include "ActionFactory.h"
 
 using namespace model;
 using namespace std;
@@ -39,14 +40,27 @@ void MyStrategy::move(const Trooper& self, const World& world, const Game& game,
 
 	if (gActionQueue.m_chain && !(gActionQueue.m_chain->chain.empty())){
 		ActionChunk chunk = *(gActionQueue.m_chain->chain.begin());
+		
+		ActionFactory af(&world, &game);
+		if (!af.isActionAvailable(*(gActionQueue.m_chain->executor), chunk.action_type)){
+			int b = 1;
+		} 
 
 		move.setAction(chunk.action_type);
 
+
+#ifdef _DEBUG
+		printf("\nUnit type%d:\t(%d, %d)\t%d\n", self.getType(), self.getX(), self.getY(), self.getStance());
+		printf("Action: %d\t(%d, %d):\n\n", chunk.action_type, chunk.target.x(), chunk.target.y());
+#endif
+
+		
 		if (!(chunk.target == Vector2d(-1, -1))){
 			move.setX(chunk.target.x());
 			move.setY(chunk.target.y());
 		}
 	}
+
 #ifdef _DEBUG  
 	clock_t endTime = clock();	
 	float diff = (endTime - startTime) / float(CLOCKS_PER_SEC);
